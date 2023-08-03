@@ -24,7 +24,7 @@ extension WorkoutManager {
          HealthKit calls this handler when a session starts mirroring.
          */
         healthStore.workoutSessionMirroringStartHandler = { mirroredSession in
-            Task {
+            Task { @MainActor in
                 self.resetWorkout()
                 self.session = mirroredSession
                 self.session?.delegate = self

@@ -23,12 +23,7 @@ struct ChartView: View {
     @State private var speedEntries = [LineChartEntry]()
     @State private var powerEntries = [LineChartEntry]()
     @State private var cadenceEntries = [LineChartEntry]()
-    /**
-     Creates a stream that buffers a single newest element, and the stream's continuation to yield new elements synchronously to the stream.
-     Use State to make sure the stream and continuation have the same life cycle of the view.
-     */
-    @State private var asynStreamTuple = AsyncStream.makeStream(of: HKWorkout.self, bufferingPolicy: .bufferingNewest(1))
-    
+
     var body: some View {
         ScrollView {
             VStack {
@@ -84,25 +79,18 @@ struct ChartView: View {
                     Spacer(minLength: 15)
                 }
             }
-            .task {
+            .task(id: workout) {
                 /**
-                 Consume the values asynchronously in this single task.
-                 The next value in the stream can't start processing until "await updateLineEntries(for: value)" returns
-                 and the loop enters the next iteration, which serializes the asynchronous operations.
+                 HKWorkout is an NSObject, which complies with Equatable, and the default implementation is comparing the object pointer,
+                 which is exactly what this case needs.
+                 SwiftUI cancels and recreates the task when the selected workout changes, so the UI always displays the latest selection.
                  */
-                for await value in asynStreamTuple.stream {
-                    await updateLineEntries(for: value)
-                }
-            }
-            .onChange(of: workout) { _, newValue in
-                if let newWorkout = newValue {
-                    asynStreamTuple.continuation.yield(newWorkout)
-                }
+                await updateLineEntries()
             }
         }
     }
     
-    private func updateLineEntries(for streamedWorkout: HKWorkout) async {
+    private func updateLineEntries() async {
         guard let workout = workout else {
             speedEntries = []
             powerEntries = []

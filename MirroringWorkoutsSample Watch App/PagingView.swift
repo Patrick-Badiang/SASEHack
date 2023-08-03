@@ -47,8 +47,8 @@ struct PagingView: View {
     }
 
     private func displayMetricsView() {
-        withAnimation {
+        //withAnimation {
             selection = .metrics
-        }
+        //}
     }
 }
