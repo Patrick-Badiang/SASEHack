@@ -17,6 +17,10 @@ struct StartView: View {
     @State private var triggerAuthorization = false
 
     var body: some View {
+        /**
+         Is the view that is on start up, is the 'home'
+         */
+        
         NavigationStack {
            VStack {
                Button {
@@ -39,6 +43,7 @@ struct StartView: View {
                .tint(.green)
                .foregroundColor(.black)
                .frame(width: 400, height: 400)
+               
            }
            .onAppear() {
                triggerAuthorization.toggle()

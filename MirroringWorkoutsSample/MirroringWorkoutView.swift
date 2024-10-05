@@ -13,6 +13,9 @@ struct MirroringWorkoutView: View {
     @EnvironmentObject var workoutManager: WorkoutManager
 
     var body: some View {
+        /**
+         Is the workout session view (is shown when a workout starts)
+         */
         NavigationStack {
             let fromDate = workoutManager.session?.startDate ?? Date()
             let schedule = MetricsTimelineSchedule(from: fromDate, isPaused: workoutManager.sessionState == .paused)

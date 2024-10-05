@@ -29,6 +29,9 @@ struct WorkoutListView: View {
     }
 
     var body: some View {
+        /**
+         The list of all workouts
+         */
         listViewOrEmpty()
         .onAppear {
             triggerAuthorization.toggle()

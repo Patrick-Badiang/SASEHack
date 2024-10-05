@@ -9,6 +9,9 @@ import HealthKit
 import SwiftUI
 
 struct SummaryView: View {
+    /**
+     Is the summary of everything
+     */
     @Binding var workout: HKWorkout?
 
     var body: some View {
