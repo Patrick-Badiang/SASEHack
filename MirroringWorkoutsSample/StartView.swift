@@ -9,6 +9,7 @@ import os
 import SwiftUI
 import HealthKitUI
 import HealthKit
+import Combine
 
 // Color extension for hex color support
 extension Color {
@@ -37,75 +38,130 @@ extension Color {
     }
 }
 
+class GlobalState: ObservableObject {
+    @Published var selectedOption: String = "Option 1"
+}
+
+
 struct StartView: View {
     @EnvironmentObject var workoutManager: WorkoutManager
+    @EnvironmentObject var globalState: GlobalState
+
     @State private var isFullScreenCoverActive = false
     @State private var didStartWorkout = false
     @State private var triggerAuthorization = false
 
+    
+    
+    
+    @State var selectedOption: String = "Option 1"
+    
     var body: some View {
         /**
          Is the view that is on start up, is the 'home'
          */
         
         NavigationStack {
-        
-                VStack {
-                    Button {
-                        if !workoutManager.sessionState.isActive {
-                            startCyclingOnWatch()
-                        }
-                        didStartWorkout = true
-                    } label: {
-                        let title = workoutManager.sessionState.isActive ? "View ongoing workout" : "Start Workout"
-                        ButtonLabel(title: title, systemImage: "figure.outdoor.cycle")
-                            .frame(width: 150, height: 150)
-                            .fontWeight(.medium)
-                    }
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle().stroke(.white, lineWidth: 4)
-                    }
-                    .shadow(radius: 7)
-                    .buttonStyle(.bordered)
-                    .tint(Color(hex: "B7BD9E"))
-                    .foregroundColor(.black)
-                    .frame(width: 400, height: 400)
-                    
-                }
-                .onAppear() {
-                    triggerAuthorization.toggle()
-                    workoutManager.retrieveRemoteSession()
-                }
-                .healthDataAccessRequest(store: workoutManager.healthStore,
-                                         shareTypes: workoutManager.typesToShare,
-                                         readTypes: workoutManager.typesToRead,
-                                         trigger: triggerAuthorization, completion: { result in
-                    switch result {
-                    case .success(let success):
-                        print("\(success) for authorization")
-                    case .failure(let error):
-                        print("\(error) for authorization")
-                    }
-                })
-                .navigationDestination(isPresented: $didStartWorkout) {
-                    MirroringWorkoutView()
-                }
-                .navigationBarTitle("Workout for the day")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        Button {
-                            isFullScreenCoverActive = true
-                        } label: {
-                            Label("Workout list", systemImage: "list.bullet.below.rectangle")
-                        }
-                    }
-                }
-                .fullScreenCover(isPresented: $isFullScreenCoverActive) {
-                    WorkoutListView()
-                }
             
+            VStack {
+                // The Button that changes icon based on the selected option
+                Button {
+                       if !workoutManager.sessionState.isActive {
+                           switch globalState.selectedOption {
+                           case "Cycle":
+                               startCyclingOnWatch()
+                           case "Running":
+                               startRunningOnWatch()
+                           case "Swimming":
+                               startSwimmingOnWatch()
+                           case "Other":
+                               startOtherOnWatch()
+                           default:
+                               startOtherOnWatch()
+                               
+                           }
+                       }
+                       didStartWorkout = true
+                   } label: {
+                       // Dynamically choose the icon and title based on the selected option
+                           let iconName: String
+                           let title: String
+                           
+                           switch globalState.selectedOption {
+                           case "Cycle":
+                               iconName = "figure.outdoor.cycle"
+                               title = didStartWorkout ? "View ongoing workout" : "Start Workout"
+                           case "Running":
+                               iconName = "figure.run"
+                               title = didStartWorkout ? "View ongoing workout" : "Start Workout"
+                           case "Swimming":
+                               iconName = "figure.pool.swim"
+                               title = didStartWorkout ? "View ongoing workout" : "Start Workout"
+                           case "Other":
+                               iconName = "figure.hiking"
+                               title = didStartWorkout ? "View ongoing workout" : "Start Workout"
+                           default:
+                               iconName = "figure.mind.and.body"
+                               title = didStartWorkout ? "View ongoing workout" : "Start Workout"
+                           }
+                           
+                           return ButtonLabel(title: title, systemImage: iconName) // Ensure that this returns a valid View
+                               .frame(width: 150, height: 150)
+                               .fontWeight(.medium)
+                }
+                .clipShape(Circle())
+                .overlay {
+                    Circle().stroke(.white, lineWidth: 4)
+                }
+                .shadow(radius: 7)
+                .buttonStyle(.bordered)
+                .tint(Color(hex: "B7BD9E"))
+                .foregroundColor(.black)
+                .frame(width: 400, height: 400)
+                
+                Spacer() // Just for layout purposes
+            }
+            .onAppear() {
+                triggerAuthorization.toggle()
+                workoutManager.retrieveRemoteSession()
+            }
+            .healthDataAccessRequest(store: workoutManager.healthStore,
+                                     shareTypes: workoutManager.typesToShare,
+                                     readTypes: workoutManager.typesToRead,
+                                     trigger: triggerAuthorization, completion: { result in
+                switch result {
+                case .success(let success):
+                    print("\(success) for authorization")
+                case .failure(let error):
+                    print("\(error) for authorization")
+                }
+            })
+            .navigationDestination(isPresented: $didStartWorkout) {
+                MirroringWorkoutView()
+            }
+            .navigationBarTitle("Workout for the day")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Picker("Select an option", selection: $globalState.selectedOption) {
+                        ForEach(["Change Workout", "Cycle", "Running", "Swimming", "Other"], id: \.self) { option in
+                            Text(option).tag(option)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle()) // Style it as a menu
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        isFullScreenCoverActive = true
+                    } label: {
+                        Label("Workout list", systemImage: "list.bullet.below.rectangle")
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $isFullScreenCoverActive) {
+                                WorkoutListView()
+                            }
         }
     }
         
@@ -117,6 +173,33 @@ struct StartView: View {
                 Logger.shared.log("Failed to start cycling on the paired watch.")
             }
         }
-        
+    }
+    
+    private func startRunningOnWatch() {
+        Task {
+            do {
+                try await workoutManager.startWatchWorkout(workoutType: .running)
+            } catch {
+                Logger.shared.log("Failed to start running on the paired watch.")
+            }
+        }
+    }
+    private func startSwimmingOnWatch() {
+        Task {
+            do {
+                try await workoutManager.startWatchWorkout(workoutType: .swimming)
+            } catch {
+                Logger.shared.log("Failed to start swimming on the paired watch.")
+            }
+        }
+    }
+    private func startOtherOnWatch() {
+        Task {
+            do {
+                try await workoutManager.startWatchWorkout(workoutType: .walking)
+            } catch {
+                Logger.shared.log("Failed to start walking on the paired watch.")
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@ import HealthKit
 
 struct MirroringWorkoutView: View {
     @EnvironmentObject var workoutManager: WorkoutManager
+    @EnvironmentObject var globalState: GlobalState
 
     var body: some View {
         /**
@@ -31,7 +32,7 @@ struct MirroringWorkoutView: View {
                         }
                     }
                 }
-                .navigationBarTitle("Mirroring Workout")
+                .navigationBarTitle("Current Workout")
                 .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -45,7 +46,20 @@ extension MirroringWorkoutView {
                 HStack{
                     ZStack {
                         // Circular content (formerly the button's label)
-                        Image( systemName: "figure.outdoor.cycle")
+                        let iconName: String
+                        switch globalState.selectedOption {
+                        case "Cycle":
+                            iconName = "figure.outdoor.cycle"
+                        case "Running":
+                            iconName = "figure.run"
+                        case "Swimming":
+                            iconName = "figure.pool.swim"
+                        case "Other":
+                            iconName = "figure.hiking"
+                        default:
+                            iconName = "figure.mind.and.body"
+                        }
+                        return Image( systemName: iconName)
                             .frame(width: 50, height: 50)
                             .fontWeight(.medium)
                             .foregroundColor(.black)
@@ -66,7 +80,7 @@ extension MirroringWorkoutView {
                     } label: {
                         Text("Elapsed")
                     }
-                    .foregroundColor(.black)
+                    .foregroundColor(.green)
                     .font(.system(.title, design: .rounded).monospacedDigit().lowercaseSmallCaps())
                 }
                 
@@ -95,13 +109,37 @@ extension MirroringWorkoutView {
     @ViewBuilder
     private func metricsView() -> some View {
         Group {
-            LabeledContent("Speed", value: workoutManager.speed, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Cadence", value: workoutManager.cadence, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Power", value: workoutManager.power, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Water", value: workoutManager.water, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
-            LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+            switch globalState.selectedOption{
+            case "Cycle":
+                LabeledContent("Speed", value: workoutManager.speed, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Cadence", value: workoutManager.cadence, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Power", value: workoutManager.power, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Water", value: workoutManager.water, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+            case "Running":
+                LabeledContent("Speed", value: workoutManager.speed, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Lap", value: workoutManager.water, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+            case "Swimming":
+                LabeledContent("Speed", value: workoutManager.speed, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Lap", value: workoutManager.water, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+            case "Other":
+                LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+            default:
+                LabeledContent("Active Energy", value: workoutManager.activeEnergy, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Heart Rate", value: workoutManager.heartRate, format: .number.precision(.fractionLength(0)))
+                LabeledContent("Distance", value: workoutManager.distance, format: .number.precision(.fractionLength(0)))
+                
+            }
         }
         .font(.system(.title2, design: .rounded).monospacedDigit().lowercaseSmallCaps())
     }
@@ -139,7 +177,20 @@ extension MirroringWorkoutView {
                 Button {
                     recordWaterIntake()
                 } label: {
-                    ButtonLabel(title: "Water", systemImage: "drop.fill")
+                    let title: String
+                    switch globalState.selectedOption {
+                    case "Cycle":
+                        title = "Water"
+                    case "Running":
+                        title = "Lap"
+                    case "Swimming":
+                        title = "Lap"
+                    case "Other":
+                        title = "Water"
+                    default:
+                        title = "Water"
+                    }
+                    return ButtonLabel(title: title, systemImage: "drop.fill")
                 }
                 .tint(.blue)
                 .disabled(!workoutManager.sessionState.isActive)

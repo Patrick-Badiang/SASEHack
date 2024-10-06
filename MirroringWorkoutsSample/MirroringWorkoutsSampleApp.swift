@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct MirroringWorkoutsSampleApp: App {
     private let workoutManager = WorkoutManager.shared
+    @StateObject private var globalState = GlobalState()
 
     var body: some Scene {
         WindowGroup {
@@ -18,6 +19,8 @@ struct MirroringWorkoutsSampleApp: App {
                 
                 StartView()
                     .environmentObject(workoutManager)
+                    .environmentObject(globalState) // Make it available to the entire view hierarchy
+                
             } else {
                 WorkoutListView()
             }
