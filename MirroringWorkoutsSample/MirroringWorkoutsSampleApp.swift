@@ -13,7 +13,9 @@ struct MirroringWorkoutsSampleApp: App {
 
     var body: some Scene {
         WindowGroup {
+            
             if UIDevice.current.userInterfaceIdiom == .phone {
+                
                 StartView()
                     .environmentObject(workoutManager)
             } else {

@@ -17,21 +17,22 @@ struct MirroringWorkoutView: View {
          Is the workout session view (is shown when a workout starts)
          */
         NavigationStack {
-            let fromDate = workoutManager.session?.startDate ?? Date()
-            let schedule = MetricsTimelineSchedule(from: fromDate, isPaused: workoutManager.sessionState == .paused)
-            TimelineView(schedule) { context in
-                List {
-                    Section {
-                        metricsView()
-                    } header: {
-                        headerView(context: context)
-                    } footer: {
-                        footerView()
+                let fromDate = workoutManager.session?.startDate ?? Date()
+                let schedule = MetricsTimelineSchedule(from: fromDate, isPaused: workoutManager.sessionState == .paused)
+                TimelineView(schedule) { context in
+                    List {
+                        Section {
+                            
+                            metricsView()
+                        } header: {
+                            headerView(context: context)
+                        } footer: {
+                            footerView()
+                        }
                     }
                 }
-            }
-            .navigationBarTitle("Mirroring Workout")
-            .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitle("Mirroring Workout")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -39,18 +40,39 @@ struct MirroringWorkoutView: View {
 extension MirroringWorkoutView {
     @ViewBuilder
     private func headerView(context: TimelineViewDefaultContext) -> some View {
-        VStack {
-            Spacer(minLength: 30)
-            LabeledContent {
-                ElapsedTimeView(elapsedTime: workoutTimeInterval(context.date), showSubseconds: context.cadence == .live)
+            VStack {
+                Spacer(minLength: 15)
+                HStack{
+                    ZStack {
+                        // Circular content (formerly the button's label)
+                        Image( systemName: "figure.outdoor.cycle")
+                            .frame(width: 50, height: 50)
+                            .fontWeight(.medium)
+                            .foregroundColor(.black)
+                            .clipShape(Circle()) // Shape remains circular
+                            .overlay {
+                                Circle().stroke(.white, lineWidth: 2) // White circular stroke
+                            }
+                            .shadow(radius: 3) // Shadow around the circle
+                            .background(Color(hex: "B7BD9E").clipShape(Circle())) // Custom tint background
+                        
+                        
+                        
+                    }
+                    .frame(width: 50, height: 50)
+                    LabeledContent {
+                        ElapsedTimeView(elapsedTime: workoutTimeInterval(context.date), showSubseconds: context.cadence == .live)
+                            .font(.system(.title, design: .rounded).monospacedDigit().lowercaseSmallCaps())
+                    } label: {
+                        Text("Elapsed")
+                    }
+                    .foregroundColor(.black)
                     .font(.system(.title, design: .rounded).monospacedDigit().lowercaseSmallCaps())
-            } label: {
-                Text("Elapsed")
+                }
+                
+                Spacer(minLength: 15)
             }
-            .foregroundColor(.yellow)
-            .font(.system(.title, design: .rounded).monospacedDigit().lowercaseSmallCaps())
-            Spacer(minLength: 15)
-        }
+
     }
     
     private func workoutTimeInterval(_ contextDate: Date) -> TimeInterval {
@@ -89,6 +111,16 @@ extension MirroringWorkoutView {
         VStack {
             Spacer(minLength: 40)
             HStack {
+                
+
+                Button {
+                    workoutManager.session?.stopActivity(with: .now )
+                } label: {
+                    ButtonLabel(title: "End", systemImage: "xmark")
+                }
+                .tint(Color(hex: "E58A8A"))
+                .disabled(!workoutManager.sessionState.isActive)
+                
                 Button {
                     if let session = workoutManager.session {
                         workoutManager.sessionState == .running ? session.pause() : session.resume()
@@ -97,18 +129,12 @@ extension MirroringWorkoutView {
                     let title = workoutManager.sessionState == .running ? "Pause" : "Resume"
                     let systemImage = workoutManager.sessionState == .running ? "pause" : "play"
                     ButtonLabel(title: title, systemImage: systemImage)
+                        .disabled(!workoutManager.sessionState.isActive)
                 }
+                .tint(Color(hex: "B7BD9E"))
+                .frame(maxWidth: .infinity)
                 .disabled(!workoutManager.sessionState.isActive)
-
-                Button {
-                    workoutManager.session?.stopActivity(with: .now )
-                } label: {
-                    ButtonLabel(title: "End", systemImage: "xmark")
-                }
-                .tint(.green)
-                .disabled(!workoutManager.sessionState.isActive)
-
-                Spacer()
+                
                 
                 Button {
                     recordWaterIntake()
@@ -119,6 +145,7 @@ extension MirroringWorkoutView {
                 .disabled(!workoutManager.sessionState.isActive)
             }
             .buttonStyle(.bordered)
+            .frame(height: 20)
         }
     }
     

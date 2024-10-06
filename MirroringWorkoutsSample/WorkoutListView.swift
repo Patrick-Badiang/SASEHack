@@ -78,7 +78,7 @@ struct WorkoutListView: View {
                         Text(shortTimeFormatter.string(from: workout.startDate))
                     }
                 }
-                .navigationTitle("Cycling Workouts")
+                .navigationTitle("Workouts")
                 .toolbar {
                     toolbarItems()
                 }
